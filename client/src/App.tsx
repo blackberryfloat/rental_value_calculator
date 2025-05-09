@@ -1,35 +1,66 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect } from 'react';
+import './App.css';
+import { CssBaseline, useMediaQuery, Stack } from '@mui/material';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import InputForm, { type InputDataType } from './components/input_form';
+import { PropertyFinancials } from './state/property_financials';
+import { PropertyResult } from './components/property_result';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+  const isMobile = useMediaQuery('(max-width: 600px)'); // Detect mobile devices
+
+  const theme = createTheme({
+    palette: {
+      mode: prefersDarkMode ? 'dark' : 'light',
+      primary: {
+        main: '#1976d2',
+      },
+      secondary: {
+        main: '#dc004e',
+      },
+    },
+    typography: {
+      fontFamily: 'Roboto, Arial, sans-serif',
+    },
+  });
+
+  const [propertyFinancials, setPropertyFinancials] = useState<PropertyFinancials | null>(null);
+
+  // Function to handle input data changes
+  const handleInputData = (data: InputDataType) => {
+    console.log('Input data handled:', data);
+    const financials = new PropertyFinancials(data);
+    financials.printSummary();
+    setPropertyFinancials(financials);
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      {
+        isMobile ? (
+          <Stack spacing={2} justifyContent="center" alignItems="center">
+            {propertyFinancials && <PropertyResult propertyFinancials={propertyFinancials} />}
+            <InputForm
+              onSubmit={(data) => {
+                handleInputData(data);
+              }}
+            />
+          </Stack>
+        ) : (
+          <Stack spacing={2} direction="row" justifyContent="center" alignItems="center">
+            <InputForm
+              onSubmit={(data) => {
+                handleInputData(data);
+              }}
+            />
+            {propertyFinancials && <PropertyResult propertyFinancials={propertyFinancials} />}
+          </Stack>
+        )
+      }
+    </ThemeProvider>
+  );
 }
 
-export default App
+export default App;
