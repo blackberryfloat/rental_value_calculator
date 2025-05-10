@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import './App.css';
 import { CssBaseline, useMediaQuery, Stack } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';

@@ -1,0 +1,32 @@
+name: Continuous Integration (CI)
+
+# Runs on release tag push
+on:
+  pull_request:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: client
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      - name: Install dependencies
+        run: npm install
+      - name: Run linter
+        run: npm run lint
+      - name: Format code
+        run: npm run format
+      - name: Run tests
+        run: npm test
+      - name: Build project
+        run: npm run build
