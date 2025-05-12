@@ -43,7 +43,7 @@ export class PropertyFinancials {
     monthlyRevenue(): number {
         const { revenueStreams, occupancyRatePercent: occupancyRate } = this.inputData;
         return revenueStreams.reduce(
-            (total: number, stream: any) => total + stream.value * stream.count,
+            (total: number, stream: any) => total + stream.value * stream.count, // eslint-disable-line @typescript-eslint/no-explicit-any
             0
         ) * occupancyRate;
     }
@@ -63,16 +63,16 @@ export class PropertyFinancials {
     }
 
     printSummary(): void {
-        console.log("Property Financials Summary:");
-        console.log("----------------------------");
-        console.log("Monthly Loan Payment:", this.monthlyLoanPayment());
-        console.log("Monthly Management Cost:", this.monthlyManagementCost());
-        console.log("Monthly Maintenance Cost:", this.monthlyMaintenanceCost());
-        console.log("Monthly Property Tax:", this.inputData.propertyTax);
-        console.log("Monthly Insurance Cost:", this.inputData.insuranceCost);
-        console.log("Monthly Cost:", this.monthlyCost());
-        console.log("Monthly Revenue:", this.monthlyRevenue());
-        console.log("Monthly Net Profit:", this.monthlyNetProfit());
-        console.log("Net Profit Color:", this.getNetProfitColor());
+        console.debug("Property Financials Summary:");
+        console.debug("----------------------------");
+        console.debug("Monthly Loan Payment:", this.monthlyLoanPayment());
+        console.debug("Monthly Management Cost:", this.monthlyManagementCost());
+        console.debug("Monthly Maintenance Cost:", this.monthlyMaintenanceCost());
+        console.debug("Monthly Property Tax:", this.inputData.propertyTax);
+        console.debug("Monthly Insurance Cost:", this.inputData.insuranceCost);
+        console.debug("Monthly Cost:", this.monthlyCost());
+        console.debug("Monthly Revenue:", this.monthlyRevenue());
+        console.debug("Monthly Net Profit:", this.monthlyNetProfit());
+        console.debug("Net Profit Color:", this.getNetProfitColor());
     }
 }

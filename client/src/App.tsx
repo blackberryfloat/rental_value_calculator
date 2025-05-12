@@ -29,7 +29,6 @@ function App() {
 
   // Function to handle input data changes
   const handleInputData = (data: InputDataType) => {
-    console.log('Input data handled:', data);
     const financials = new PropertyFinancials(data);
     financials.printSummary();
     setPropertyFinancials(financials);

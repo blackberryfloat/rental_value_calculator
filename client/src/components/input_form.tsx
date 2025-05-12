@@ -41,8 +41,8 @@ interface InputFormProps {
 }
 
 const InputForm: React.FC<InputFormProps> = ({ onSubmit }) => {
-    let defaultDataStr = sessionStorage.getItem('input_data');
-    let defaultData: FormDataType | undefined = defaultDataStr ? JSON.parse(defaultDataStr) : undefined;
+    const defaultDataStr = sessionStorage.getItem('input_data');
+    const defaultData: FormDataType | undefined = defaultDataStr ? JSON.parse(defaultDataStr) : undefined;
 
     const [propertyCost, setPropertyCost] = useState<string>(defaultData?.propertyCost || "0");
     const [downPayment, setDownPayment] = useState<string>(defaultData?.downPayment || "0");
@@ -70,26 +70,26 @@ const InputForm: React.FC<InputFormProps> = ({ onSubmit }) => {
         managementExpensePercent,
     });
 
-    const isFormComplete = () => {
-        return (
-            propertyCost !== "" &&
-            parseFloat(propertyCost) > 0 && // Ensure propertyCost is greater than 0
-            downPayment !== "" &&
-            apr !== "" &&
-            parseFloat(apr) > 0 && parseFloat(apr) <= 100 && // Ensure apr is between 0 and 100
-            termYears !== "" &&
-            parseInt(termYears, 10) > 0 && // Ensure termYears is greater than 0
-            revenueStreams.every((stream) => stream.value !== "" && stream.count !== "") &&
-            occupancyRatePercent !== "" &&
-            parseFloat(occupancyRatePercent) >= 0 && parseFloat(occupancyRatePercent) <= 100 && // Ensure occupancyRate is between 0 and 100
-            propertyTax !== "" &&
-            insuranceCost !== "" &&
-            managementExpensePercent !== "" &&
-            parseFloat(managementExpensePercent) >= 0 && parseFloat(managementExpensePercent) <= 100 // Ensure managementCost is between 0 and 100
-        );
-    };
-
     useEffect(() => {
+        const isFormComplete = () => {
+            return (
+                propertyCost !== "" &&
+                parseFloat(propertyCost) > 0 && // Ensure propertyCost is greater than 0
+                downPayment !== "" &&
+                apr !== "" &&
+                parseFloat(apr) > 0 && parseFloat(apr) <= 100 && // Ensure apr is between 0 and 100
+                termYears !== "" &&
+                parseInt(termYears, 10) > 0 && // Ensure termYears is greater than 0
+                revenueStreams.every((stream) => stream.value !== "" && stream.count !== "") &&
+                occupancyRatePercent !== "" &&
+                parseFloat(occupancyRatePercent) >= 0 && parseFloat(occupancyRatePercent) <= 100 && // Ensure occupancyRate is between 0 and 100
+                propertyTax !== "" &&
+                insuranceCost !== "" &&
+                managementExpensePercent !== "" &&
+                parseFloat(managementExpensePercent) >= 0 && parseFloat(managementExpensePercent) <= 100 // Ensure managementCost is between 0 and 100
+            );
+        };
+
         const currentState: FormDataType = {
             propertyCost,
             downPayment,
@@ -106,7 +106,6 @@ const InputForm: React.FC<InputFormProps> = ({ onSubmit }) => {
         sessionStorage.setItem('input_data', JSON.stringify(currentState));
 
         const hasStateChanged = JSON.stringify(previousState.current) !== JSON.stringify(currentState);
-        console.log("hasStateChanged", hasStateChanged, "isComplete", isFormComplete());
 
         if (hasStateChanged && isFormComplete()) {
             onSubmit({
