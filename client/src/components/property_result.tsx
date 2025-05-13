@@ -1,9 +1,10 @@
+import React from 'react';
 import { Card, CardContent, Chip, Typography } from "@mui/material";
-import { PropertyFinancials } from "../state/property_financials";
+import { PropertyModel } from "../state/property_model";
 
 
 interface PropertyResultProps {
-    propertyFinancials: PropertyFinancials
+    propertyFinancials: PropertyModel
 }
 
 export function PropertyResult({propertyFinancials}: PropertyResultProps) {

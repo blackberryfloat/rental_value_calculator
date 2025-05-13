@@ -9,7 +9,8 @@ interface RevenueStream {
 }
 
 export interface InputDataType {
-    propertyCost: number;
+    address: string;
+    propertyPrice: number;
     downPayment: number;
     apr: number;
     termYears: number;
@@ -23,13 +24,14 @@ export interface InputDataType {
 }
 
 interface FormDataType {
-    propertyCost: string;
+    address: string;
+    propertyPrice: string;
     downPayment: string;
     apr: string;
     termYears: string;
 
     // Below is per month
-    revenueStreams: {value: string, count: string}[];
+    revenueStreams: { value: string; count: string }[];
     occupancyRatePercent: string;
     propertyTax: string;
     insuranceCost: string;
@@ -43,8 +45,9 @@ interface InputFormProps {
 const InputForm: React.FC<InputFormProps> = ({ onSubmit }) => {
     const defaultDataStr = sessionStorage.getItem('input_data');
     const defaultData: FormDataType | undefined = defaultDataStr ? JSON.parse(defaultDataStr) : undefined;
-
-    const [propertyCost, setPropertyCost] = useState<string>(defaultData?.propertyCost || "0");
+    
+    const [address, setAddress] = useState<string>(defaultData?.address || "");
+    const [propertyPrice, setPropertyPrice] = useState<string>(defaultData?.propertyPrice || "0");
     const [downPayment, setDownPayment] = useState<string>(defaultData?.downPayment || "0");
     const [apr, setApr] = useState<string>(defaultData?.apr || "0");
     const [termYears, setTermYears] = useState<string>(defaultData?.termYears || "0");
@@ -59,7 +62,7 @@ const InputForm: React.FC<InputFormProps> = ({ onSubmit }) => {
     );
 
     const previousState = useRef<FormDataType>({
-        propertyCost,
+        propertyPrice,
         downPayment,
         apr,
         termYears,
@@ -68,13 +71,14 @@ const InputForm: React.FC<InputFormProps> = ({ onSubmit }) => {
         propertyTax,
         insuranceCost,
         managementExpensePercent,
+        address,
     });
 
     useEffect(() => {
         const isFormComplete = () => {
             return (
-                propertyCost !== "" &&
-                parseFloat(propertyCost) > 0 && // Ensure propertyCost is greater than 0
+                propertyPrice !== "" &&
+                parseFloat(propertyPrice) > 0 && // Ensure propertyPrice is greater than 0
                 downPayment !== "" &&
                 apr !== "" &&
                 parseFloat(apr) > 0 && parseFloat(apr) <= 100 && // Ensure apr is between 0 and 100
@@ -86,12 +90,13 @@ const InputForm: React.FC<InputFormProps> = ({ onSubmit }) => {
                 propertyTax !== "" &&
                 insuranceCost !== "" &&
                 managementExpensePercent !== "" &&
-                parseFloat(managementExpensePercent) >= 0 && parseFloat(managementExpensePercent) <= 100 // Ensure managementCost is between 0 and 100
+                parseFloat(managementExpensePercent) >= 0 && parseFloat(managementExpensePercent) <= 100 && // Ensure managementCost is between 0 and 100
+                address !== "" // Ensure address is not empty
             );
         };
 
         const currentState: FormDataType = {
-            propertyCost,
+            propertyPrice,
             downPayment,
             apr,
             termYears,
@@ -100,6 +105,7 @@ const InputForm: React.FC<InputFormProps> = ({ onSubmit }) => {
             propertyTax,
             insuranceCost,
             managementExpensePercent,
+            address,
         };
 
         // Always save form state to session storage
@@ -109,7 +115,7 @@ const InputForm: React.FC<InputFormProps> = ({ onSubmit }) => {
 
         if (hasStateChanged && isFormComplete()) {
             onSubmit({
-                propertyCost: parseFloat(propertyCost),
+                propertyPrice: parseFloat(propertyPrice),
                 downPayment: parseFloat(downPayment),
                 apr: parseFloat(apr),
                 termYears: parseInt(termYears, 10),
@@ -121,12 +127,13 @@ const InputForm: React.FC<InputFormProps> = ({ onSubmit }) => {
                 propertyTax: parseFloat(propertyTax),
                 insuranceCost: parseFloat(insuranceCost),
                 managementExpensePercent: parseFloat(managementExpensePercent),
+                address,
             });
         }
 
         previousState.current = currentState;
     }, [
-        propertyCost,
+        propertyPrice,
         downPayment,
         apr,
         termYears,
@@ -135,6 +142,7 @@ const InputForm: React.FC<InputFormProps> = ({ onSubmit }) => {
         propertyTax,
         insuranceCost,
         managementExpensePercent,
+        address,
         onSubmit,
     ]);
 
@@ -156,13 +164,22 @@ const InputForm: React.FC<InputFormProps> = ({ onSubmit }) => {
 
     return (
         <Box sx={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Tooltip title="Full property address">
+                <TextField
+                    label="Address"
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    fullWidth
+                />
+            </Tooltip>
             <Tooltip title="Total cost of the property">
                 <TextField
                     label="Property Cost"
                     type="number"
-                    value={propertyCost}
+                    value={propertyPrice}
                     onChange={(e) => {
-                        setPropertyCost(e.target.value);
+                        setPropertyPrice(e.target.value);
                     }}
                     required
                     fullWidth

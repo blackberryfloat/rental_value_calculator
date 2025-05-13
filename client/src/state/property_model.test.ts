@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { PropertyFinancials } from './property_financials'
+import { PropertyModel } from './property_model'
 import type { InputDataType } from '../components/input_form'
 
 const inputData: InputDataType = {
-  propertyCost: 200_000,
+  address: '123 Main St',
+  propertyPrice: 200_000,
   downPayment: 50_000,
   apr: 5,                     // percent
   termYears: 30,
@@ -15,7 +16,7 @@ const inputData: InputDataType = {
 }
 
 describe('PropertyFinancials', () => {
-  const pf = new PropertyFinancials(inputData)
+  const pf = new PropertyModel(inputData)
 
   it('converts percents to decimals in constructor', () => {
     const data = pf.getInputData()

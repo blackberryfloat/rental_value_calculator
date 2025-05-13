@@ -1,9 +1,12 @@
 import type { InputDataType } from "../components/input_form";
 
-export class PropertyFinancials {
+export class PropertyModel {
+    private createdAt: number;
     private inputData: InputDataType;
 
     constructor(inputData: InputDataType) {
+        // record creation time
+        this.createdAt = Date.now();
         this.inputData = { ...inputData };
         this.inputData.apr /= 100; // Convert APR to decimal
         this.inputData.managementExpensePercent /= 100; // Convert management cost to decimal
@@ -14,8 +17,12 @@ export class PropertyFinancials {
         return {...this.inputData};
     }
 
+    getCreatedAt(): number {
+        return this.createdAt;
+    }
+
     monthlyLoanPayment(): number {
-        const principal = this.inputData.propertyCost - this.inputData.downPayment;
+        const principal = this.inputData.propertyPrice - this.inputData.downPayment;
         const monthlyInterestRate = this.inputData.apr / 12;
         const numPayments = this.inputData.termYears * 12;
         const ter = Math.pow(1 + monthlyInterestRate, numPayments);
@@ -27,8 +34,8 @@ export class PropertyFinancials {
     }
 
     monthlyMaintenanceCost(): number {
-        const { propertyCost } = this.inputData;
-        return (propertyCost * 0.01) / 12; // 1% of property cost
+        const { propertyPrice } = this.inputData;
+        return  (propertyPrice * 0.01) / 12; // 1% of property cost
     }
 
     monthlyCost(): number {
@@ -53,13 +60,20 @@ export class PropertyFinancials {
     }
 
     getNetProfitColor(): string {
-        const netProfitThreshold = (this.inputData.propertyCost / 12) * 0.05; // 5% of property cost divided by 12
+        const netProfitThreshold = (this.inputData.propertyPrice / 12) * 0.05; // 5% of property cost divided by 12
         const netProfit = this.monthlyNetProfit();
         let result: string;
-        if (netProfit < 0) result = "error"; // Red
-        else if (netProfit < netProfitThreshold) result = "warning"; // Yellow
-        else result = "success"; // Green
+        if (netProfit < netProfitThreshold) result = "warning"; // Yellow
+        else if (netProfit >= netProfitThreshold) result = "success"; // Green
+        else result = "error"; // Red
         return result;
+    }
+
+    annualROI(): number {
+        const { downPayment } = this.inputData;
+        const annualNetProfit = this.monthlyNetProfit() * 12;
+        const roi = (annualNetProfit / downPayment) * 100; // ROI in percentage
+        return roi;
     }
 
     printSummary(): void {
