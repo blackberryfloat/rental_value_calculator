@@ -1,13 +1,13 @@
-import React, { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { RecoilRoot } from 'recoil';
-import './index.css'
-import App from './App.tsx'
+import React, { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { Provider } from 'jotai';
+import './index.css';
+import App from './App';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <RecoilRoot>
+    <Provider>
       <App />
-    </RecoilRoot>
+    </Provider>
   </StrictMode>,
-)
+);

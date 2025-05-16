@@ -1,84 +1,29 @@
-import { atom, selector, DefaultValue } from 'recoil';
+import { atom } from 'jotai';
 import { Alert } from './alert';
-import type { Toast } from './toast';
+import { Toast } from './toast';
 
-export const recoilAlerts = atom<Alert[]>({
-    key: 'recoilAlerts',
-    default: [],
+export const alertsAtom = atom<Alert[]>([]);
+
+export const addAlertAtom = atom(null, (_get, set, newAlert: Alert) => {
+  set(alertsAtom, (prev) => [...prev, newAlert]);
 });
 
-export const recoilAddAlert = selector<Alert>({
-    key: 'recoilAddAlert',  // must be unique
-    get: () => {
-        // no-op getter; use set only
-        throw new Error('recoilAddAlert is write-only');
-    },
-    set: ({ get, set }, newAlert) => {
-        if (newAlert instanceof DefaultValue) return;
-        const current = get(recoilAlerts);
-        set(recoilAlerts, [...current, newAlert]);
-    },
+export const removeAlertAtom = atom(null, (_get, set, uuid: string) => {
+  set(alertsAtom, (prev) => prev.filter((a) => a.uuid !== uuid));
 });
 
-export const recoilRemoveAlert = selector<string>({
-    key: 'recoilRemoveAlert',  // must be unique
-    get: () => {
-        // no-op getter; use set only
-        throw new Error('recoilRemoveAlert is write-only');
-    },
-    set: ({ get, set }, uuid) => {
-        if (uuid instanceof DefaultValue) return;
-        const current = get(recoilAlerts);
-        set(recoilAlerts, current.filter(alert => alert.uuid !== uuid));
-    },
+const TOAST_DEL_TIMEOUT = 3000; // 3 seconds
+
+export const toastsAtom = atom<Toast[]>([]);
+
+export const addToastAtom = atom(null, (_get, set, newToast: Toast) => {
+  set(toastsAtom, (prev) => [...prev, newToast]);
+  // auto-expire
+  setTimeout(() => {
+    set(removeToastAtom, newToast.uuid);
+  }, TOAST_DEL_TIMEOUT);
 });
 
-/**
- * An atom holding the current list of toast‐alerts.
- */
-export const recoilToasts = atom<Toast[]>({
-    key: 'recoilToasts',
-    default: [],
+export const removeToastAtom = atom(null, (_get, set, uuid: string) => {
+  set(toastsAtom, (prev) => prev.filter((t) => t.uuid !== uuid));
 });
-
-/**
- * Write‐only selector to push a new toast onto the list,
- * then automatically remove it after 3s.
- */
-export const recoilAddToast = selector<Toast>({
-    key: 'recoilAddToast',
-    get: () => {
-        throw new Error('recoilAddToast is write‐only');
-    },
-    set: ({ get, set }, newToast) => {
-        if (newToast instanceof DefaultValue) return;
-
-        const current = get(recoilToasts);
-        set(recoilToasts, [...current, newToast]);
-
-        // schedule automatic removal in 3 seconds
-        window.setTimeout(() => {
-            set(recoilRemoveToast, newToast.uuid);
-        }, 3000);
-    },
-});
-
-/**
- * Write‐only selector to remove a toast by its UUID.
- */
-export const recoilRemoveToast = selector<string>({
-    key: 'recoilRemoveToast',
-    get: () => {
-        throw new Error('recoilRemoveToast is write‐only');
-    },
-    set: ({ get, set }, uuid) => {
-        if (uuid instanceof DefaultValue) return;
-
-        const current = get(recoilToasts);
-        set(
-            recoilToasts,
-            current.filter((toast) => toast.uuid !== uuid)
-        );
-    },
-});
-

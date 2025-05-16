@@ -1,79 +1,78 @@
 import React, { useEffect, useRef, useReducer } from 'react';
 import './App.css';
-import { Stack, Box, IconButton, AppBar, Toolbar, Typography } from '@mui/material';
-import { AppModel } from './state/app_model';
-import PropertyCard from './components/property_card';
-import { PropertyModel } from './state/property_model';
+import {
+  Stack,
+  Box,
+  IconButton,
+  AppBar,
+  Toolbar,
+  Typography,
+  Alert as MuiAlert,
+  Snackbar,
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import UndoIcon from '@mui/icons-material/Undo';
 import RedoIcon from '@mui/icons-material/Redo';
-import { useMediaQuery } from "@mui/material";
+import { useMediaQuery } from '@mui/material';
 import { handleStateChange, Undoer } from './state/undoer';
-import { recoilAddToast, recoilAlerts, recoilToasts } from './state/app.state';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { Toast } from './components/toast';
-import { Alert } from './components/alert';
-import { ToastCode, Toast as ToastState } from './state/toast';
+import { Toast as ToastState, ToastCode } from './state/toast';
+import { AppModel } from './state/app_model';
+import PropertyCard from './components/property_card';
+import { PropertyModel } from './state/property_model';
 import { Style } from './components/style';
+
+import { useAtom, useSetAtom } from 'jotai';
+import {
+  alertsAtom,
+  addAlertAtom,
+  removeAlertAtom,
+  toastsAtom,
+  addToastAtom,
+  removeToastAtom,
+} from './state/app.state';
+import { AlertLevel } from './state/alert';
 
 function App() {
   const isMobile = useMediaQuery('(max-width: 600px)');
 
-  // load state from local storage
+  // load & undo/redo
   const modelRef = useRef<AppModel>(AppModel.load());
-  // set up undo and redo functionality
-  const [undoer, updateUndoer] = useReducer(handleStateChange, new Undoer<AppModel>(modelRef.current));
+  const [undoer, updateUndoer] = useReducer(
+    handleStateChange,
+    new Undoer<AppModel>(modelRef.current),
+  );
 
-  const toasts = useRecoilValue(recoilToasts);
-  const addToast = useSetRecoilState(recoilAddToast);
-  const alerts = useRecoilValue(recoilAlerts);
+  // jotai atoms
+  const [alerts] = useAtom(alertsAtom);
+  const addAlert = useSetAtom(addAlertAtom);
+  const removeAlert = useSetAtom(removeAlertAtom);
+
+  const [toasts] = useAtom(toastsAtom);
+  const addToast = useSetAtom(addToastAtom);
+  const removeToast = useSetAtom(removeToastAtom);
+
+  const severityMap: Record<AlertLevel, 'error' | 'warning' | 'info'> = {
+    [AlertLevel.ERROR]: 'error',
+    [AlertLevel.WARNING]: 'warning',
+    [AlertLevel.INFO]: 'info',
+  };
 
   const handleUndo = () => {
     updateUndoer('UNDO');
     addToast(ToastState.fromCode(ToastCode.UNDO));
   };
-
   const handleRedo = () => {
     updateUndoer('REDO');
     addToast(ToastState.fromCode(ToastCode.REDO));
   };
 
-  // persist state on every change
   useEffect(() => {
     undoer.current.save();
   }, [undoer.current]);
 
-  // on mount, wire up Ctrl+Z / Ctrl+Y (or Cmd on Mac)
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      // navigator.platform is deprecated → detect Mac via userAgentData or userAgent
-      const isMac =
-        // modern API
-        navigator.userAgent
-          ?.toLowerCase()
-          .includes('mac') ??
-        // fallback
-        /Mac/i.test(navigator.userAgent);
-      const mod = isMac ? e.metaKey : e.ctrlKey;
-
-      // undo: Ctrl/Cmd + Z
-      if (mod && !e.shiftKey && e.key.toLowerCase() === 'z') {
-        e.preventDefault();
-        handleUndo();    // dispatch an “undo” action
-      }
-      // redo: Ctrl/Cmd + Y  OR  Ctrl/Cmd + Shift + Z
-      if (mod && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
-        e.preventDefault();
-        handleRedo();    // dispatch a “redo” action
-      }
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
-
   const handleAddProperty = () => {
-    modelRef.current.addProperty(new PropertyModel({
+    const p = new PropertyModel({
       address: 'UNKNOWN',
       propertyPrice: 0,
       downPayment: 0,
@@ -84,31 +83,40 @@ function App() {
       managementExpensePercent: 0,
       occupancyRatePercent: 0,
       revenueStreams: [],
-    }));
+    });
+    modelRef.current.addProperty(p);
     updateUndoer(modelRef.current);
   };
 
   return (
     <Style>
-      {/* header with title and undo/redo */}
       <AppBar position="static" color="primary">
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" sx={{ flexGrow: 1 }}>
             Rental Calculator
           </Typography>
-          <IconButton edge="end" color="inherit" onClick={() => handleUndo()}>
+          <IconButton color="inherit" onClick={handleUndo}>
             <UndoIcon />
           </IconButton>
-          <IconButton edge="end" color="inherit" onClick={() => handleRedo()}>
+          <IconButton color="inherit" onClick={handleRedo}>
             <RedoIcon />
           </IconButton>
         </Toolbar>
       </AppBar>
 
-      {/* alerts below header, centered */}
       <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center', gap: 1 }}>
-        {alerts.map(a => (
-          <Alert key={a.uuid} alert={a} />
+        {alerts.map((a) => (
+          <MuiAlert
+            key={a.uuid}
+            severity={severityMap[a.level]}
+            action={
+              <IconButton size="small" onClick={() => removeAlert(a.uuid)}>
+                <CloseIcon fontSize="inherit" />
+              </IconButton>
+            }
+          >
+            {a.message}
+          </MuiAlert>
         ))}
       </Box>
 
@@ -116,69 +124,63 @@ function App() {
         <Stack
           spacing={2}
           sx={{
-            padding: 2,
-            margin: isMobile ? '0 auto' : '20px',
-            maxWidth: "100%",
-            width: '100vw',
-            height: '100vh',
-            verticalAlign: 'top',
+            p: 2,
+            m: isMobile ? '0 auto' : 2,
+            width: '100%',
+            height: '100%',
           }}
         >
-          {
-            modelRef.current.properties.map((property, idx) => {
-              // remove a property from list and update undoer
-              const handleRemove = () => {
-                modelRef.current.removeProperty(idx);
-                updateUndoer(modelRef.current);
-              };
+          {modelRef.current.properties.map((property, idx) => {
+            const handleRemove = () => {
+              modelRef.current.removeProperty(idx);
+              updateUndoer(modelRef.current);
+            };
+            const handleUpdate = (p: PropertyModel) => {
+              modelRef.current.updateProperty(idx, p);
+              updateUndoer(modelRef.current);
+            };
+            return (
+              <PropertyCard
+                key={property.getCreatedAt()}
+                property={property}
+                remove={handleRemove}
+                update={handleUpdate}
+              />
+            );
+          })}
 
-              // update a property's content in list and update undoer
-              const handleUpdate = (p: PropertyModel) => {
-                modelRef.current.updateProperty(idx, p);
-                updateUndoer(modelRef.current);
-              };
-
-              // component to interact with property information
-              // this is a memoized component to avoid unnecessary re-renders
-              return (
-                <PropertyCard
-                  key={property.getCreatedAt()} // stable key
-                  property={property}
-                  remove={handleRemove}
-                  update={handleUpdate}
-                />
-              );
-            })
-          }
-
-          {/* Add new property button */}
           <Box
             component="span"
             onClick={handleAddProperty}
-            sx={theme => ({
+            sx={(t) => ({
               display: 'block',
               width: '100%',
               py: 1,
               textAlign: 'center',
               cursor: 'pointer',
               bgcolor: 'inherit',
-              border: `2px solid ${theme.palette.divider}`,    // use divider for contrast
-              color: theme.palette.text.primary,               // text contrasts with bg
+              border: `2px solid ${t.palette.divider}`,
+              color: t.palette.text.primary,
               borderRadius: 1,
             })}
           >
-            <AddCircleIcon fontSize="large" color="primary" />
+            <AddCircleIcon fontSize="large" />
           </Box>
         </Stack>
       </Box>
-      {
-        // toasts at the bottom right of the screen
-        toasts.map((toast) => (
-          <Toast toast={toast} key={toast.uuid} />
-        ))
-      }
+
+      {toasts.map((t) => (
+        <Snackbar
+          key={t.uuid}
+          open
+          autoHideDuration={3000}
+          onClose={() => removeToast(t.uuid)}
+          message={t.message}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        />
+      ))}
     </Style>
   );
-};
+}
 
 export default App;
