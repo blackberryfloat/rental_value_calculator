@@ -4,6 +4,14 @@ export class PropertyModel {
   private createdAt: number;
   private inputData: InputDataType;
 
+  /** Rehydrate a PropertyModel from plain object */
+  static fromJSON(o: any): PropertyModel {
+    const { createdAt, inputData } = o;
+    const inst = new PropertyModel(inputData);
+    inst['createdAt'] = createdAt;
+    return inst;
+  }
+
   constructor(inputData: InputDataType) {
     // record creation time
     this.createdAt = Date.now();
@@ -94,5 +102,13 @@ export class PropertyModel {
     console.debug('Monthly Revenue:', this.monthlyRevenue());
     console.debug('Monthly Net Profit:', this.monthlyNetProfit());
     console.debug('Net Profit Color:', this.getNetProfitColor());
+  }
+
+  /** Properties only object to reduce serialization size. */
+  toJSON(): any {
+    return {
+      createdAt: this.createdAt,
+      inputData: this.inputData,
+    };
   }
 }
