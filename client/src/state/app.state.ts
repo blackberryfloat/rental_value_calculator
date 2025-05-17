@@ -48,6 +48,9 @@ export const updateUndoerAtom = atom(
       u.addAction(action);
     }
     u.current.save();
-    set(undoerAtom, u);
+    // note this is a shallow copy but that is actually great. We want to trigger a rerender on
+    // on change but in the least expensive way possible. Ideally we use reference only but that
+    // is a future optimization.
+    set(undoerAtom, u.clone());
   },
 );

@@ -14,20 +14,17 @@ import { Undoer } from './state/undoer';
 
 function App() {
   const isMobile = useMediaQuery('(max-width: 600px)');
-  const modelRef = useRef<AppModel>(AppModel.load());
   const [undoer, setUndoer] = useAtom(undoerAtom);
   const updateUndoer = useSetAtom(updateUndoerAtom);
 
   useEffect(() => {
     // Load the model from local storage
     console.log('On Mount');
-    const savedModel = AppModel.load();
-    modelRef.current = savedModel;
-    setUndoer(new Undoer(modelRef.current));
+    setUndoer(new Undoer(AppModel.load()));
   }, []);
 
   const handleAddProperty = () => {
-    console.log('Adding property');
+    if (!undoer?.current) return;
     const p = new PropertyModel({
       address: 'UNKNOWN',
       propertyPrice: 0,
@@ -40,8 +37,8 @@ function App() {
       occupancyRatePercent: 0,
       revenueStreams: [],
     });
-    modelRef.current.addProperty(p);
-    updateUndoer(modelRef.current);
+    undoer.current.addProperty(p);
+    updateUndoer(undoer.current);
   };
 
   return (
@@ -56,25 +53,6 @@ function App() {
           height: '100%',
         }}
       >
-        {modelRef.current.properties.map((property, idx) => {
-          const handleRemove = () => {
-            modelRef.current.removeProperty(idx);
-            updateUndoer(modelRef.current);
-          };
-          const handleUpdate = (p: PropertyModel) => {
-            modelRef.current.updateProperty(idx, p);
-            updateUndoer(modelRef.current);
-          };
-          return (
-            <PropertyCard
-              key={property.getCreatedAt()}
-              property={property}
-              remove={handleRemove}
-              update={handleUpdate}
-            />
-          );
-        })}
-
         <Box
           component="span"
           onClick={handleAddProperty}
@@ -92,6 +70,41 @@ function App() {
         >
           <AddCircleIcon fontSize="large" />
         </Box>
+        {undoer?.current?.properties && undoer?.current?.properties.length > 0 ? (
+          undoer.current.properties.map((property, idx) => {
+            const handleRemove = () => {
+              undoer.current.removeProperty(idx);
+              updateUndoer(undoer.current);
+            };
+            const handleUpdate = (p: PropertyModel) => {
+              undoer.current.updateProperty(idx, p);
+              updateUndoer(undoer.current);
+            };
+            return (
+              <PropertyCard
+                key={property.getCreatedAt()}
+                property={property}
+                remove={handleRemove}
+                update={handleUpdate}
+              />
+            );
+          })
+        ) : (
+          <Box
+            component="span"
+            sx={(t) => ({
+              display: 'block',
+              width: '100%',
+              py: 1,
+              textAlign: 'center',
+              bgcolor: 'inherit',
+              color: t.palette.text.primary,
+              borderRadius: 1,
+            })}
+          >
+            No properties added yet.
+          </Box>
+        )}
       </Stack>
     </Page>
   );

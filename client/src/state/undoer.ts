@@ -36,4 +36,11 @@ export class Undoer<T> {
     this.undoStack.push(action);
     return action;
   }
+
+  clone(): Undoer<T> {
+    const clone = new Undoer<T>(this.current);
+    clone.undoStack = [...this.undoStack];
+    clone.redoStack = [...this.redoStack];
+    return clone;
+  }
 }

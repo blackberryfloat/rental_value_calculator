@@ -80,58 +80,64 @@ export function Page({ children }: StyleProps) {
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ display: 'flex', padding: 0 }}>
-        <CssBaseline />
-        <AppBar position="fixed" color="primary">
-          {/* make the Toolbar a positioning context */}
-          <Toolbar sx={{ position: 'relative' }}>
-            <Typography
-              variant="h6"
-              sx={{
-                position: 'absolute',
-                left: '50%',
-                transform: 'translateX(-50%)',
-              }}
-            >
-              Rental Calculator
-            </Typography>
+      <CssBaseline />
+      <AppBar position="fixed" color="primary">
+        {/* make the Toolbar a positioning context */}
+        <Toolbar sx={{ position: 'relative' }}>
+          <Typography
+            variant="h6"
+            sx={{
+              position: 'absolute',
+              left: '50%',
+              transform: 'translateX(-50%)',
+            }}
+          >
+            Rental Calculator
+          </Typography>
 
-            {!isMobile && (
-              <>
-                <IconButton color="inherit" onClick={handleUndo}>
-                  <UndoIcon />
-                </IconButton>
-                <IconButton color="inherit" onClick={handleRedo}>
-                  <RedoIcon />
-                </IconButton>
-              </>
-            )}
-          </Toolbar>
-        </AppBar>
-        <Alerts />
+          {!isMobile && (
+            <>
+              <IconButton color="inherit" onClick={handleUndo}>
+                <UndoIcon />
+              </IconButton>
+              <IconButton color="inherit" onClick={handleRedo}>
+                <RedoIcon />
+              </IconButton>
+            </>
+          )}
+        </Toolbar>
+      </AppBar>
+      <Alerts />
+      <Box
+        component="main"
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          flexGrow: 1,
+          padding: 0,
+          marginTop: '64px',
+          minHeight: 'calc(100vh - 64px)',
+        }}
+      >
+        {children}
+        {/* spacer to push footer down */}
+        <Box sx={{ flexGrow: 1 }} />
         <Box
-          component="main"
+          component="footer"
           sx={{
-            flexGrow: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            width: '100vw',
-            height: '100%',
+            mt: 'auto',
+            py: 2,
+            bgcolor: 'background.paper',
+            textAlign: 'center',
+            width: '100%',
           }}
         >
-          <Toolbar />
-          {children}
-          <Box
-            component="footer"
-            sx={{ mt: 'auto', py: 2, bgcolor: 'background.paper', textAlign: 'center' }}
-          >
-            <Typography variant="body2" color="text.secondary">
-              © {new Date().getFullYear()} Blackberry Float
-            </Typography>
-          </Box>
+          <Typography variant="body2" color="text.secondary">
+            © {new Date().getFullYear()} Blackberry Float
+          </Typography>
         </Box>
-        <Toasts />
       </Box>
+      <Toasts />
     </ThemeProvider>
   );
 }
